@@ -237,16 +237,24 @@ function generate_upstart_config {
 
   log_info "Creating Upstart config file to run Consul Template in $upstart_config_path"
   cat > "$upstart_config_path" <<EOF
-[program:consul-template]
-command=$consul_template_bin_dir/consul-template -config $consul_template_config_dir
-stdout_logfile=$consul_template_log_dir/consul-template-stdout.log
-stderr_logfile=$consul_template_log_dir/consul-template-error.log
-numprocs=1
-autostart=true
-autorestart=true
-stopsignal=INT
-user=$consul_template_user
-environment=$consul_template_environment
+description "Consul Template"
+
+start on (runlevel [2345] and started network)
+stop on (runlevel [!2345] or stopping network)
+
+# Allow service to revive after crash
+respawn
+
+script
+  export GOMAXPROCS=`1` $consul_template_environment
+
+  # https://superuser.com/questions/213416/running-upstart-jobs-as-unprivileged-users
+  # https://stackoverflow.com/questions/8251933/how-can-i-log-the-stdout-of-a-process-started-by-start-stop-daemon
+  exec /usr/local/bin/start-stop-daemon --start -c $consul_template_user \
+    --make-pidfile --pidfile /var/run/consul-template.pid \
+    --startas /bin/bash -- -c \
+    "exec '"$consul_template_bin_dir/consul-template"' -config '"$consul_template_config_dir"' >> '"$consul_template_log_dir/consul-template-stdout.log"' 2>&1"
+end script
 EOF
 }
 
@@ -487,7 +495,7 @@ function run {
     fi
   fi
 
-  generate_upstart_config "$UPSTART_CONFIG_PATH" "$config_dir" "$log_dir" "$bin_dir" "$user" "$(join_by "," "${environment[@]}")"
+  generate_upstart_config "$UPSTART_CONFIG_PATH" "$config_dir" "$log_dir" "$bin_dir" "$user" "$(join_by " " "${environment[@]}")"
   start_consul_template
 }
 

@@ -1,9 +1,6 @@
 ---
-- name: Check supervisor is installed
-  apt:
-    name: supervisor
-    state: present
-  become: yes
+- name: Check Upstart is installed
+  shell: "command -v initctl"
 - name: Check Consul is installed
   shell: "consul version"
 - name: Check Consul Template user exists

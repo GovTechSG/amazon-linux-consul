@@ -45,3 +45,7 @@ some commonly used parameters.
 Starting / rebooting the instance using the custom AMI with all the above items
 should get it working / very close to working, allowing it to communicate with
 `consul` servers.
+
+## Consul Template setup for Vault token retrival and renewal
+
+This setup follows the implementation in [aws-auth](https://github.com/GovTechSG/terraform-modules/tree/master/modules/aws-auth).  It is modified to use the upstart daemon so it can work with Amazon Linux.

@@ -246,7 +246,7 @@ stop on (runlevel [!2345] or stopping network)
 respawn
 
 script
-  export $consul_template_environment
+  export PATH=/usr/local/bin:$PATH $consul_template_environment
 
   # https://superuser.com/questions/213416/running-upstart-jobs-as-unprivileged-users
   # https://stackoverflow.com/questions/8251933/how-can-i-log-the-stdout-of-a-process-started-by-start-stop-daemon
